@@ -1,5 +1,4 @@
 
-import com.storemanage.po.DeviceInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.*;
@@ -31,14 +30,16 @@ public class ExcelTemplate {
 
     /**
      * 创建入库excel模版
-     *
      * @param filePath
      * @param headers
+     * @param devices
+     * @param deviceTypes
      * @param warehouses
      * @param warehouseAndShelves
-     * @return excel模版
+     * @return
+     * @throws IOException
      */
-    private static File createStoreInExcelTemplate(String filePath, List<String> headers, List<String> warehouses, Map<String, List<String>> warehouseAndShelves) throws IOException {
+    private static File createStoreInExcelTemplate(String filePath, List<String> headers,List<String> devices, List<String> deviceTypes, List<String> warehouses, Map<String, List<String>> warehouseAndShelves) throws IOException {
         FileOutputStream out = null;
         File file;
         try {
@@ -52,12 +53,6 @@ public class ExcelTemplate {
             wb.setSheetHidden(1, true); //将第二个用于存储下拉框数据的sheet隐藏
             wb.setSheetHidden(2, true);
             initHeaders(wb, mainSheet, headers);
-            //************* mock data ************
-            DeviceInfo device1 = new DeviceInfo(1, "设备1", "01", "type1");
-            DeviceInfo device2 = new DeviceInfo(2, "设备2", "02", "type2");
-            DeviceInfo device3 = new DeviceInfo(3, "设备3", "03", "type3");
-            List<String> deviceTypes = Arrays.asList("type1", "type2", "type3", "type4");
-            List<DeviceInfo> devices = Arrays.asList(device1, device2, device3);
             initDevicesAndType(wb, dtHiddenSheet, devices, deviceTypes);
             initWarehousesAndShelves(wb, wsHiddenSheet, warehouses, warehouseAndShelves);
             initSheetNameMapping(mainSheet);
@@ -188,7 +183,7 @@ public class ExcelTemplate {
         return s.toString();
     }
 
-    private static void initDevicesAndType(HSSFWorkbook wb, HSSFSheet dtHiddenSheet, List<DeviceInfo> devices, List<String> deviceTypes) {
+    private static void initDevicesAndType(HSSFWorkbook wb, HSSFSheet dtHiddenSheet, List<String> devices, List<String> deviceTypes) {
         writeDevices(wb, dtHiddenSheet, devices);
         writeDeviceTypes(wb, dtHiddenSheet, deviceTypes);
         initDevicesNameMapping(wb, dtHiddenSheet.getSheetName(), devices.size());
@@ -218,11 +213,11 @@ public class ExcelTemplate {
             }
     }
 
-    private static void writeDevices(HSSFWorkbook wb, HSSFSheet dtHiddenSheet, List<DeviceInfo> devices) {
+    private static void writeDevices(HSSFWorkbook wb, HSSFSheet dtHiddenSheet, List<String> devices) {
         for (int i = 0; i < devices.size(); i++) {
             HSSFRow row = dtHiddenSheet.createRow(i);
             HSSFCell cell1 = row.createCell(0);
-            cell1.setCellValue(devices.get(i).getDeviceName());
+            cell1.setCellValue(devices.get(i));
         }
     }
 
@@ -359,12 +354,15 @@ public class ExcelTemplate {
     }
 
     public static File test() throws IOException {
+        //************* mock data ************
         List<String> headers = Arrays.asList("设备名称", "设类型", "数量", "存放库房", "存放货架", "存放层", "存放列");
+        List<String> deviceTypes = Arrays.asList("type1", "type2", "type3", "type4");
+        List<String> devices = Arrays.asList("设备1", "设备2", "设备3");
         List<String> warehouses = Arrays.asList("库房1", "库房2");
         Map<String, List<String>> warehousesAndShelves = new HashMap<>();
         warehousesAndShelves.put("库房1", Arrays.asList("货架1-1", "货架1-2", "货架1-3"));
         warehousesAndShelves.put("库房2", Arrays.asList("货架2-1", "货架2-2", "货架2-3"));
-        return ExcelTemplate.createStoreInExcelTemplate("f:/test.xls", headers, warehouses, warehousesAndShelves);
+        return ExcelTemplate.createStoreInExcelTemplate("f:/test.xls", headers,devices, deviceTypes, warehouses, warehousesAndShelves);
     }
 
     public static void main(String[] args) throws IOException {
