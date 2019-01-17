@@ -1,3 +1,3 @@
 ### convert canal msg to JavaBean：
-set the mapping value between JavaBean fields and columns of DB table, using java reflect.
-Attention, they should have standard name format which has no special chars except “_".
+set the mapping value, which is from columns of DB table, for JavaBean fields, using java reflect.
+Attention, they should have standard name format without special but except “_".
