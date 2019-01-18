@@ -1,5 +1,3 @@
-package com.tqmall.lsc.mq_canallog.impl;
-
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
