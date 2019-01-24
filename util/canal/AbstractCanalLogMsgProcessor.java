@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractCanalLogMsgProcessor implements CanalLogMsgProcessor {
+public abstract class AbstractCanalLogMsgProcessor {
 
     private DefaultConversionService conversionService = new DefaultConversionService() {
         {
