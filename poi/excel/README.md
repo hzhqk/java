@@ -3,7 +3,7 @@
 此版本基于注解更方便使用，使用示例见main方法。createExcel方法不再返回byte数组，如需返回数组可自己封装或调用后拿到HssfWorkbook后使用以下操作来确保相关的流可以正常关闭
 ```
 获取
-excel bytes示例：```
+excel bytes示例：
 ```
      ByteArrayOutputStream os = new ByteArrayOutputStream();
      workbook.write(os);
