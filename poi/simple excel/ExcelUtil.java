@@ -55,7 +55,7 @@ public class ExcelUtil {
      *     获取excel bytes示例：
      *         ByteArrayOutputStream os = new ByteArrayOutputStream();
      *         workbook.write(os);
-     *         或直接使用 ExcelUtil.getExcelBytes(hssfWorkbook);
+     *         或直接使用 PoiExcelUtil.getExcelBytes(hssfWorkbook);
      * </pre>
      *
      * @param datas
@@ -126,8 +126,9 @@ public class ExcelUtil {
 
     private static void createOneSheetAndWriteData(HSSFWorkbook workbook, String sheetName, List<?> datas, List<Field> dataFields) throws Exception {
         HSSFSheet sheet = workbook.createSheet(sheetName);
-        initSheetHeaders(workbook, sheet, dataFields);
-        writeData(sheet, datas, dataFields);
+        List<FieldWithFormatter> fieldWithFormatter = convert2FieldWithFormatter(dataFields);
+        initSheetHeaders(workbook, sheet, fieldWithFormatter);
+        writeData(sheet, datas, fieldWithFormatter);
     }
 
     /**
@@ -155,13 +156,12 @@ public class ExcelUtil {
         workbook.write(response.getOutputStream());
     }
 
-    private static void writeData(HSSFSheet sheet, List<?> datas, List<Field> fields) throws Exception {
+    private static void writeData(HSSFSheet sheet, List<?> datas, List<FieldWithFormatter> fieldWithFormatter) throws Exception {
         if (CollectionUtils.isEmpty(datas)) {
             return;
         }
         int startX = 1;
         int startY = 0;
-        List<FieldWithFormatter> fieldWithFormatter = convert2FieldWithFormatter(fields);
         for (Object item : datas) {
             HSSFRow row = sheet.createRow(startX);
             for (FieldWithFormatter fwf : fieldWithFormatter) {
@@ -195,16 +195,20 @@ public class ExcelUtil {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            return new FieldWithFormatter(f, formatter);
-        }).collect(Collectors.toList());
+            return new FieldWithFormatter(f, annotation.name(), annotation.order(), formatter);
+        }).sorted(Comparator.comparingInt(f -> f.order)).collect(Collectors.toList());
     }
 
     private static class FieldWithFormatter {
         private Field field;
+        private String columnName;
+        private int order;
         private ExcelColumnFormatter formatter;
 
-        public FieldWithFormatter(Field field, ExcelColumnFormatter formatter) {
+        public FieldWithFormatter(Field field, String columnName, int order, ExcelColumnFormatter formatter) {
             this.field = field;
+            this.columnName = columnName;
+            this.order = order;
             this.formatter = formatter;
         }
 
@@ -214,6 +218,22 @@ public class ExcelUtil {
 
         public void setField(Field field) {
             this.field = field;
+        }
+
+        public String getColumnName() {
+            return columnName;
+        }
+
+        public void setColumnName(String columnName) {
+            this.columnName = columnName;
+        }
+
+        public int getOrder() {
+            return order;
+        }
+
+        public void setOrder(int order) {
+            this.order = order;
         }
 
         public ExcelColumnFormatter getFormatter() {
@@ -247,12 +267,11 @@ public class ExcelUtil {
 
     /**
      * 初始化表头
-     *
-     * @param wb
+     *  @param wb
      * @param sheet
      * @param dataFields
      */
-    private static void initSheetHeaders(HSSFWorkbook wb, HSSFSheet sheet, List<Field> dataFields) {
+    private static void initSheetHeaders(HSSFWorkbook wb, HSSFSheet sheet, List<FieldWithFormatter> dataFields) {
         if (CollectionUtils.isEmpty(dataFields)) {
             return;
         }
@@ -280,7 +299,7 @@ public class ExcelUtil {
             //加样式
             cell.setCellStyle(style);
             //往单元格里写数据
-            cell.setCellValue(dataFields.get(i).getAnnotation(ExcelField.class).name());
+            cell.setCellValue(dataFields.get(i).getColumnName());
         }
     }
 
@@ -308,7 +327,7 @@ public class ExcelUtil {
         }
         HSSFWorkbook wb = ExcelUtil.createExcelWithSheetName("测试", datas);
         ExcelUtil.createSheetAndWriteData(wb, "", Arrays.asList(new Extension(9999)));
-        wb.write(new FileOutputStream(new File("/Users/hzhqk/Desktop/excel.xls")));
+        wb.write(new FileOutputStream(new File("/Users/shhanqiankun/Desktop/excel.xls")));
         System.out.println("everything goes well");
     }
 
@@ -322,17 +341,17 @@ public class ExcelUtil {
     @AllArgsConstructor
     @Data
     private static class TestData {
-        @ExcelField(name = "String")
+        @ExcelField(name = "String", order = 9)
         private String str;
-        @ExcelField(name = "Date", formatter = DefaultDateFormatter.class)
+        @ExcelField(name = "Date", order = 8, formatter = DefaultDateFormatter.class)
         private Date date;
-        @ExcelField(name = "Integer")
+        @ExcelField(name = "Integer", order = 7)
         private int mint;
-        @ExcelField(name = "Float")
+        @ExcelField(name = "Float", order = 6)
         private float mfloat;
-        @ExcelField(name = "Decimal")
+        @ExcelField(name = "Decimal", order = 3)
         private BigDecimal bigDecimal;
-        @ExcelField(name = "list")
+        @ExcelField(name = "list", order = 999)
         private List<Date> list;
         @ExcelField(name = "Map")
         private Map<String, Date> map;
